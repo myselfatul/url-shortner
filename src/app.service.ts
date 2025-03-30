@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { encodeBase62 } from 'utils/base64EncodingDecoding';
-import { createUniqueId } from 'utils/uniqueIdGenerator';
+import { encodeBase62 } from '../utils/base64EncodingDecoding';
+import { createUniqueId } from '../utils/uniqueIdGenerator';
 import { PrismaService } from './prisma.service';
 import { Prisma, UrlMapping } from '@prisma/client';
 import { createShortUrlDto } from './app.dto';
