@@ -41,6 +41,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.development
 
 # temp directory
 .temp
@@ -59,4 +60,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .husky
 .prettierignore
 package-lock.json
+migrations
 

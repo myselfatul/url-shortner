@@ -1,12 +1,13 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { createShortUrlDto } from './app.dto';
 
-@Controller()
+@Controller('api/vi')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post()
-  postShortUrl(@Body() longUrl: string): string {
-    return this.appService.postShortUrl(longUrl);
+  @Post('url/shorten')
+  createShortUrl(@Body() longUrlForm: createShortUrlDto): Promise<string> {
+    return this.appService.postShortUrl(longUrlForm);
   }
 }

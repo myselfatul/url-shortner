@@ -1,85 +1,72 @@
-class Snowflake {
-  private workerId: number;
-  private datacenterId: number;
-  private epoch: number;
-  private sequence: number;
-  private lastTimestamp: number;
+export function createUniqueId(
+  machineId: number,
+  datacenterId: number,
+  epoch: number = 1609459200000,
+): string {
+  const machineIdBits = 5;
+  const datacenterIdBits = 5;
+  const sequenceBits = 12;
 
-  private readonly workerIdBits = 5;
-  private readonly datacenterIdBits = 5;
-  private readonly sequenceBits = 12;
+  const maxmachineId = (1 << machineIdBits) - 1;
+  const maxDatacenterId = (1 << datacenterIdBits) - 1;
+  const maxSequence = (1 << sequenceBits) - 1;
 
-  private readonly maxWorkerId = (1 << this.workerIdBits) - 1;
-  private readonly maxDatacenterId = (1 << this.datacenterIdBits) - 1;
-  private readonly maxSequence = (1 << this.sequenceBits) - 1;
+  const machineIdShift = sequenceBits;
+  const datacenterIdShift = sequenceBits + machineIdBits;
+  const timestampLeftShift = sequenceBits + machineIdBits + datacenterIdBits;
 
-  private readonly workerIdShift = this.sequenceBits;
-  private readonly datacenterIdShift = this.sequenceBits + this.workerIdBits;
-  private readonly timestampLeftShift =
-    this.sequenceBits + this.workerIdBits + this.datacenterIdBits;
-
-  constructor(
-    workerId: number,
-    datacenterId: number,
-    epoch: number = 1609459200000,
-  ) {
-    // Epoch: Jan 1, 2021
-    if (workerId > this.maxWorkerId || workerId < 0) {
-      throw new Error(
-        `Worker ID (${workerId}) out of bounds (0-${this.maxWorkerId})`,
-      );
-    }
-    if (datacenterId > this.maxDatacenterId || datacenterId < 0) {
-      throw new Error(
-        `Datacenter ID (${datacenterId}) out of bounds (0-${this.maxDatacenterId})`,
-      );
-    }
-
-    this.workerId = workerId;
-    this.datacenterId = datacenterId;
-    this.epoch = epoch;
-
-    this.sequence = 0;
-    this.lastTimestamp = -1;
+  if (machineId > maxmachineId || machineId < 0) {
+    throw new Error(
+      `Worker ID (${machineId}) out of bounds (0-${maxmachineId})`,
+    );
+  }
+  if (datacenterId > maxDatacenterId || datacenterId < 0) {
+    throw new Error(
+      `Datacenter ID (${datacenterId}) out of bounds (0-${maxDatacenterId})`,
+    );
   }
 
-  private _currentTimestamp(): number {
+  let sequence = 0;
+  let lastTimestamp = -1;
+
+  function currentTimestamp(): number {
     return Date.now();
   }
 
-  private _waitForNextMillisecond(lastTimestamp: number): number {
-    let timestamp = this._currentTimestamp();
+  function waitForNextMillisecond(lastTimestamp: number): number {
+    let timestamp = currentTimestamp();
     while (timestamp <= lastTimestamp) {
-      timestamp = this._currentTimestamp();
+      timestamp = currentTimestamp();
     }
     return timestamp;
   }
 
-  public generateId(): string {
-    let timestamp = this._currentTimestamp();
+  function generateId(): string {
+    let timestamp = currentTimestamp();
 
-    if (timestamp < this.lastTimestamp) {
+    if (timestamp < lastTimestamp) {
       throw new Error('Clock moved backwards. Refusing to generate ID.');
     }
 
-    if (timestamp === this.lastTimestamp) {
-      this.sequence = (this.sequence + 1) & this.maxSequence;
-      if (this.sequence === 0) {
-        timestamp = this._waitForNextMillisecond(this.lastTimestamp);
+    if (timestamp === lastTimestamp) {
+      sequence = (sequence + 1) & maxSequence;
+      if (sequence === 0) {
+        timestamp = waitForNextMillisecond(lastTimestamp);
       }
     } else {
-      this.sequence = 0;
+      sequence = 0;
     }
 
-    this.lastTimestamp = timestamp;
+    lastTimestamp = timestamp;
 
-    const snowflakeId = (
-      (BigInt(timestamp - this.epoch) << BigInt(this.timestampLeftShift)) |
-      (BigInt(this.datacenterId) << BigInt(this.datacenterIdShift)) |
-      (BigInt(this.workerId) << BigInt(this.workerIdShift)) |
-      BigInt(this.sequence)
-    ).toString();
+    const snowflakeId =
+      (BigInt(timestamp - epoch) << BigInt(timestampLeftShift)) |
+      (BigInt(datacenterId) << BigInt(datacenterIdShift)) |
+      (BigInt(machineId) << BigInt(machineIdShift)) |
+      BigInt(sequence);
 
-    return snowflakeId;
+    return snowflakeId.toString();
   }
+
+  return generateId();
 }
