@@ -12,23 +12,17 @@ describe('AppController', () => {
       controllers: [AppController],
       providers: [
         AppService,
-        {
-          provide: PrismaService, // Mock Prisma
-          useValue: {
-            urlMapping: {
-              create: jest.fn().mockResolvedValue({ shortUrl: 'short.ly/xyz' }),
-            },
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockImplementation((key: string) => {
-              if (key === 'DATABASE_URL') return 'postgres://test-db-url';
-              return null;
-            }),
-          },
-        },
+        PrismaService,
+        ConfigService
+        // {
+        //   provide: ConfigService,
+        //   useValue: {
+        //     get: jest.fn().mockImplementation((key: string) => {
+        //       if (key === 'DATABASE_URL') return 'postgres://test-db-url';
+        //       return null;
+        //     }),
+        //   },
+        // },
       ],
     }).compile();
 
