@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { Domains } from '../utils/domains';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -13,7 +14,7 @@ describe('AppController', () => {
       providers: [
         AppService,
         PrismaService,
-        ConfigService
+        ConfigService,
         // {
         //   provide: ConfigService,
         //   useValue: {
@@ -32,7 +33,11 @@ describe('AppController', () => {
   describe('root', () => {
     it('should return shorlUrl', () => {
       expect(
-        appController.createShortUrl({ longUrl: 'www.google.com' }),
+        appController.createShortUrl({
+          longUrl: 'www.google.com',
+          alias: 'string',
+          domain: Domains['short-nr'],
+        }),
       ).toBeTruthy();
     });
   });

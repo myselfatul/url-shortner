@@ -16,7 +16,19 @@ export class AppService {
   async postShortUrl(longUrlForm: createShortUrlDto) {
     const getExistingShortUrl = await this.getShortUrl(longUrlForm);
     if (getExistingShortUrl) {
-      return `https://atul-url-shortner/${getExistingShortUrl.shortUrl}`;
+      return getExistingShortUrl.shortUrl;
+    }
+    if (longUrlForm.alias) {
+      const alias = await this.getAlias(longUrlForm.alias);
+      if (alias) {
+        throw new Error('Alias is not available!');
+      }
+      await this.create({
+        longUrl: longUrlForm.longUrl,
+        shortUrl: `${longUrlForm.domain}/${longUrlForm.alias}`,
+        alias: longUrlForm.alias,
+      });
+      return `${longUrlForm.domain}/${longUrlForm.alias}`;
     }
     const machineId = this.configService.get<number>('MACHINE_ID') || 1;
     const dataCentreId = this.configService.get<number>('DATA_CENTRE_ID') || 1;
@@ -24,9 +36,10 @@ export class AppService {
     const shortUrlString = encodeBase62(generateId);
     await this.create({
       longUrl: longUrlForm.longUrl,
-      shortUrl: shortUrlString,
+      shortUrl: `${longUrlForm.domain}/${shortUrlString}`,
+      alias: shortUrlString,
     });
-    return `https://atul-url-shortner/${shortUrlString}`;
+    return `${longUrlForm.domain}/${shortUrlString}`;
   }
 
   async redirectUrl(shortUrlForm: string) {
@@ -58,6 +71,14 @@ export class AppService {
     return await this.prisma.urlMapping.findUnique({
       where: {
         shortUrl: input,
+      },
+    });
+  }
+
+  async getAlias(input: string): Promise<UrlMapping | null> {
+    return await this.prisma.urlMapping.findUnique({
+      where: {
+        alias: input,
       },
     });
   }

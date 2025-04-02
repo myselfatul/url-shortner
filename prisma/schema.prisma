@@ -11,6 +11,7 @@ model UrlMapping {
   id        Int      @id @default(autoincrement())
   longUrl   String   @unique
   shortUrl  String   @unique
+  alias     String   @unique
   createdAt DateTime @default(now())
 
   @@map("urlMapping")
